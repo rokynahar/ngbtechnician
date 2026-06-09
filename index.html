@@ -15,7 +15,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="keywords" content="NGB টেকনিসিয়ান সমিতি , 017140826317 , 01718167671 , ngb technician samiti , N.G.B , ngb technician samiti, NGB " />
   <link href="https://ngbtechnician.kesug.com/" rel="icon" type="image/x-icon">
-
+  <link rel="manifest" href="manifest.json">
   <!-- StyleSheets -->
   <link rel="stylesheet" href="main.css">
   <link rel="stylesheet" href="package.css">
@@ -334,7 +334,11 @@ setTimeout(function(){
     </div>
   </footer>
 
-
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js');
+}
+</script>
 
 
 </body>
