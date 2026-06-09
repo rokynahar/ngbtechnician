@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NGB প্রতিদিনের হিসাব সিস্টেম</title>
+<style>
+/* ===== Body & Container ===== */
+body { margin:0; font-family: Arial, sans-serif; background: linear-gradient(135deg,#74ebd5,#ACB6E5); color: #333; }
+.container { max-width: 1100px; margin: auto; padding: 20px; text-align: center; }
+.card { background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
+h2, h3 { text-align: center; margin: 15px 0; }
+
+/* ===== Inputs & Labels ===== */
+label{ display:block; text-align:center; font-weight:bold; margin-top:8px; }
+input, select { width: 90%; max-width: 400px; padding: 10px; margin: 5px auto 10px; border-radius: 6px; border: 1px solid #ccc; text-align: center; display: block; }
+
+/* ===== Buttons ===== */
+button { padding: 12px 20px; margin: 10px 5px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+button:hover { opacity: 0.9; }
+button.cancel { background: #9ca3af; color: #fff; }
+button.hagira { background: #2765F5; color: #fff; }
+button.save { background: #4CAF50; color: #fff; }
+button.view { background: #2196F3; color: #fff; }
+button.print { background: #FF9800; color: #fff; }
+
+/* ===== Tables ===== */
+table { width: 100%; border-collapse: collapse; margin-top: 15px; text-align: center; }
+th, td { border: 1px solid #000; padding: 8px; text-align: center; }
+#workTable thead th, #incomeTable thead th{ background:#009688; color:#ffffff; font-weight:bold; }
+
+/* ===== Stats & Flex Row ===== */
+.stats { text-align: center; margin: 15px 0; font-weight: bold; }
+.flex-row { display: flex; justify-content: center; gap: 5px; flex-wrap: wrap; margin-bottom: 10px; }
+.flex-row input, .flex-row select { width: 140px; padding: 6px; font-size: 13px; margin: 3px; }
+.flex-row button { padding: 6px 10px; font-size: 13px; margin: 3px; }
+
+/* ===== Print Styling ===== */
+@media print {
+  body * { visibility: hidden; }
+  #printAreaWork, #printAreaWork *, #printAreaIncome, #printAreaIncome * { visibility: visible; }
+  #printAreaWork, #printAreaIncome { position: absolute; top: 0; left: 0; width: 100%; text-align: center; }
+}
+
+/* ===== Responsive ===== */
+@media(max-width:768px) {
+  input, select, button { width: 95%; }
+  table, th, td { font-size: 12px; }
+}
+#printAreaWork, #printAreaIncome{ width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+#printAreaWork table, #printAreaIncome table{ min-width:900px; }
+#incomeTable button,#workTable button{ padding:2px 6px;font-size:11px;line-height:1; }
+</style>
+</head>
+<body>
+<div class="container card">
+
+<h2>NGB প্রতিদিনের হিসাব সিস্টেম</h2>
+
+<!-- HOME -->
+<div id="home">
+   <button class="save" onclick="openLogin('workEntry')">প্রতিদিনের খরচ হিসাব এন্ট্রি</button>
+  <button class="view" onclick="openLogin('workView')">খরচ ভিউ</button>
+  <button class="save" onclick="openLogin('incomeEntry')">প্রতিদিনের আয় এন্ট্রি</button>
+  <button class="view" onclick="openLogin('incomeView')">আয় ভিউ</button>
+</div>
+
+<!-- LOGIN -->
+<div id="login" style="display:none">
+  <h3>লগইন করুনঃ</h3>
+  <input id="u" placeholder="Username">
+  <input id="p" type="password" placeholder="Password">
+  <button class="save" onclick="doLogin()">Login</button>
+  <button class="cancel" onclick="backHome()">Cancel</button>
+</div>
+
+<!-- WORK ENTRY -->
+<div id="workEntry" style="display:none">
+<h3>কাজের/খরচের হিসাব এন্ট্রি</h3>
+<label>তারিখ</label><input type="date" id="w_date">
+<label>কাজ/খরচ করেছেন</label><input id="w_worker" placeholder="কে/কার মাধ্যমে খরচ করেছেন">
+<label>বিবরণ / অন্যান্য</label><input id="w_type" placeholder="বিবরণ/অন্যান্য">
+<label>খরচ পরিমাণ</label><input type="number" id="w_salary" oninput="calcWork()" placeholder="খরচের টাকা লিখুন">
+<label>দর</label><input type="number" id="w_rate" oninput="calcWork()" placeholder="দর">
+<label>মোট টাকা</label><input id="w_totalSalary" readonly placeholder="মোট টাকা">
+<label>অন্যান্য খরচ</label><input type="number" id="w_other" oninput="calcWork()" placeholder="অন্যান খরচ থাকলে কত টাকা লিখুন">
+<label>মোট ব্যালেন্স</label><input id="w_balance" readonly placeholder="মোট ব্যালেন্স">
+<button class="save" onclick="saveWork()">Save</button>
+<button class="cancel" onclick="cancelWorkEdit()">Cancel</button>
+</div>
+
+<!-- WORK VIEW -->
+<div id="workView" style="display:none">
+<h3>প্রতিদিনের খরচ/কাজের হিসাব</h3>
+<div class="flex-row">
+  <input type="date" id="workFrom">
+  <input type="date" id="workTo">
+  <select id="workMonth">
+    <option value="">মাস নির্বাচন করুন</option>
+    <option value="1">জানুয়ারি</option><option value="2">ফেব্রুয়ারি</option>
+    <option value="3">মার্চ</option><option value="4">এপ্রিল</option>
+    <option value="5">মে</option><option value="6">জুন</option>
+    <option value="7">জুলাই</option><option value="8">আগস্ট</option>
+    <option value="9">সেপ্টেম্বর</option><option value="10">অক্টোবর</option>
+    <option value="11">নভেম্বর</option><option value="12">ডিসেম্বর</option>
+  </select>
+  <input type="number" id="workYear" placeholder="বছর">
+  <button class="view" onclick="filterWorkRange()">Search</button>
+  <button class="cancel" onclick="resetWorkFilter()">Reset</button>
+  <button class="cancel" onclick="backHome()">Cancel</button>
+</div>
+
+<div class="stats">
+মোট টাকা: <span id="wTS">0</span> |
+মোট অন্যান্য খরচ: <span id="wTO">0</span> |
+মোট ব্যালেন্স: <span id="wTB">0</span>
+</div>
+
+<div id="printAreaWork">
+<table id="workTable">
+<thead>
+<tr>
+<th>তারিখ</th><th>খরচ/ কাজ করেছেন</th><th>বিবরণ/অন্যান্য</th><th>পরিমাণ</th><th>দর</th><th>মোট টাকা</th><th>অন্যান্য খরচ</th><th>মোট ব্যালেন্স</th><th>ইউজার</th><th>Action</th>
+</tr>
+</thead>
+<tbody></tbody>
+<tfoot>
+<tr>
+<td colspan="5"><b>Total</b></td>
+<td id="wTotalSalary">0</td>
+<td id="wTotalOther">0</td>
+<td id="wTotalBalance">0</td>
+<td colspan="2"></td>
+</tr>
+</tfoot>
+</table>
+</div>
+<button class="print" onclick="printWorkTable()">Print</button>
+<button class="cancel" onclick="backHome()">Cancel</button>
+</div>
+
+<!-- INCOME ENTRY -->
+<div id="incomeEntry" style="display:none">
+<h3>আয় এন্ট্রি</h3>
+<label>তারিখ</label><input type="date" id="i_date">
+<label>প্রদানকারী</label><input id="i_provider" placeholder="কে দিল তার নাম লিখুন">
+<label>মাধ্যম</label>
+<select id="i_method">
+  <option value="">--মাধ্যম নির্বাচন করুন--</option>
+  <option>সদস্য ইনভেষ্ট ক্যাশ মেমো</option>
+  <option>ইন্টারনেট বিল</option>
+  <option>ডিস বিল</option>
+  <option>সংযোগ ফি</option>
+  <option>পপ মাসিক আয়</option>
+  <option>ডিস মাসিক আয়</option>
+  <option>অনুদান</option>
+  <option>সার্ভিস</option>
+  <option>মাল বিক্রয়</option>
+  <option>তার বিক্রয়</option>
+  <option>বাকি আদায়</option>
+  
+</select>
+<label>গ্রহণকারী</label><input id="i_receiver" placeholder="গ্রহণকারীর নাম লিখুন">
+<label>বিবরণ</label><input id="i_details" placeholder="কিভাবে কিকারনে লিখুন">
+<label>পরিমাণ</label><input type="number" id="i_qty" oninput="calcIncome()">
+<label>দর</label><input type="number" id="i_rate" oninput="calcIncome()">
+<label>মোট আয়</label><input id="i_total" readonly>
+<button class="save" onclick="saveIncome()">Save</button>
+<button class="cancel" onclick="cancelIncomeEdit()">Cancel</button>
+</div>
+
+<!-- INCOME VIEW -->
+<div id="incomeView" style="display:none">
+<h3>প্রতিদিনের আয় হিসাব</h3>
+<div class="flex-row">
+  <input type="date" id="incomeFrom">
+  <input type="date" id="incomeTo">
+  <select id="incomeMonth">
+    <option value="">মাস নির্বাচন করুন</option>
+    <option value="1">জানুয়ারি</option><option value="2">ফেব্রুয়ারি</option>
+    <option value="3">মার্চ</option><option value="4">এপ্রিল</option>
+    <option value="5">মে</option><option value="6">জুন</option>
+    <option value="7">জুলাই</option><option value="8">আগস্ট</option>
+    <option value="9">সেপ্টেম্বর</option><option value="10">অক্টোবর</option>
+    <option value="11">নভেম্বর</option><option value="12">ডিসেম্বর</option>
+  </select>
+  <input type="number" id="incomeYear" placeholder="বছর">
+  <button class="view" onclick="filterIncomeRange()">Search</button>
+  <button class="cancel" onclick="resetIncomeFilter()">Reset</button>
+  <button class="cancel" onclick="backHome()">Cancel</button>
+</div>
+
+<div class="stats">
+মোট আয়: <span id="iTT">0</span>
+</div>
+
+<div id="printAreaIncome">
+<table id="incomeTable">
+<thead>
+<tr>
+<th>তারিখ</th><th>প্রদানকারী</th><th>মাধ্যম</th><th>গ্রহণকারী</th><th>বিবরণ</th><th>পরিমাণ</th><th>দর</th><th>মোট আয়</th><th>ইউজার</th><th>Action</th>
+</tr>
+</thead>
+<tbody></tbody>
+<tfoot>
+<tr>
+<td colspan="7"><b>Total</b></td>
+<td id="iTotal">0</td>
+<td colspan="2"></td>
+</tr>
+</tfoot>
+</table>
+</div>
+<button class="print" onclick="printIncomeTable()">Print</button>
+<button class="cancel" onclick="backHome()">Cancel</button>
+</div>
+
+<script>
+const API="https://script.google.com/macros/s/AKfycbzb7hTdwsPGhTzgFx6ubSBgxnbwviaOH8dYNpwx09xknO0Xs7m329TklctPBxrnv97_/exec";
+let targetPage="",currentUser="",isAdmin=false;
+let editWorkIndex=null,editIncomeIndex=null;
+let workData=[],incomeData=[];
+
+function hideAll(){ ["home","login","workEntry","workView","incomeEntry","incomeView"].forEach(id=>document.getElementById(id).style.display="none"); }
+function backHome(){ hideAll(); document.getElementById("home").style.display="block"; resetWorkForm(); resetIncomeForm(); }
+function openLogin(t){ targetPage=t; hideAll(); document.getElementById("login").style.display="block"; }
+
+function doLogin(){
+  fetch(`${API}?action=login&u=${u.value}&p=${p.value}`)
+  .then(r=>r.json())
+  .then(d=>{
+    if(d.ok){ currentUser=d.user; isAdmin=d.admin||false; hideAll(); document.getElementById(targetPage).style.display="block";
+      if(targetPage==="workView") loadWork();
+      if(targetPage==="incomeView") loadIncome();
+    } else alert("আপনার ইউজার নাম ও পাসওয়ার্ড চেক করুন?");
+  });
+}
+
+// ===== Work Entry =====
+function calcWork(){ let s=+w_salary.value||0,r=+w_rate.value||0,o=+w_other.value||0; w_totalSalary.value=s*r; w_balance.value=(s*r)+o; }
+function resetWorkForm(){ document.querySelectorAll("#workEntry input").forEach(i=>i.value=""); editWorkIndex=null; }
+function saveWork(){
+if(!w_date.value||!w_worker.value||!w_type.value||!w_salary.value||!w_rate.value){ alert("সব ফিল্ড পূরণ করুন"); return; }
+const payload={date:w_date.value,worker:w_worker.value,type:w_type.value,salary:w_salary.value,rate:w_rate.value,totalSalary:w_totalSalary.value,other:w_other.value,balance:w_balance.value,user:currentUser};
+if(editWorkIndex!==null){ payload.row=editWorkIndex; fetch(API+"?action=updateWork",{method:"POST",body:JSON.stringify(payload)}).then(()=>{ alert("Updated"); resetWorkForm(); loadWork(); }); }
+else fetch(API+"?action=saveWork",{method:"POST",body:JSON.stringify(payload)}).then(()=>{ alert("Saved"); resetWorkForm(); loadWork(); });
+}
+
+// ===== Income Entry =====
+function calcIncome(){ i_total.value=(+i_qty.value||0)*(+i_rate.value||0); }
+function resetIncomeForm(){ document.querySelectorAll("#incomeEntry input").forEach(i=>i.value=""); i_method.value=""; editIncomeIndex=null; }
+function saveIncome(){ if(!i_date.value||!i_provider.value||!i_method.value||!i_receiver.value||!i_details.value||!i_qty.value||!i_rate.value){ alert("সব ফিল্ড পূরণ করুন"); return; }
+const payload={date:i_date.value,provider:i_provider.value,method:i_method.value,receiver:i_receiver.value,details:i_details.value,qty:i_qty.value,rate:i_rate.value,total:i_total.value,user:currentUser};
+if(editIncomeIndex!==null){ payload.row=editIncomeIndex; fetch(API+"?action=updateIncome",{method:"POST",body:JSON.stringify(payload)}).then(()=>{ alert("Updated"); resetIncomeForm(); loadIncome(); }); }
+else fetch(API+"?action=saveIncome",{method:"POST",body:JSON.stringify(payload)}).then(()=>{ alert("Saved"); resetIncomeForm(); loadIncome(); });
+}
+
+// ===== Load & Render =====
+function loadWork(){ fetch(API+"?action=getWork").then(r=>r.json()).then(d=>{ workData=d.slice(1).map((r,i)=>{ const dt=new Date(r[0]); r[0]=("0"+dt.getDate()).slice(-2)+"/"+("0"+(dt.getMonth()+1)).slice(-2)+"/"+dt.getFullYear(); r._index=i; return r; }); renderWork(workData); }); }
+function renderWork(data){ let tb=document.querySelector("#workTable tbody"); tb.innerHTML=""; let ts=0,to=0,tbala=0;
+data.forEach((r)=>{ let tr=tb.insertRow(); r.forEach(c=>tr.insertCell().innerText=c); ts+=Number(r[5])||0; to+=Number(r[6])||0; tbala+=Number(r[7])||0;
+let act=tr.insertCell(); if(isAdmin) act.innerHTML=`<button onclick="editWorkRow(${r._index})">Edit</button>`; else act.innerText="No"; });
+wTS.innerText=ts; wTO.innerText=to; wTB.innerText=tbala; wTotalSalary.innerText=ts; wTotalOther.innerText=to; wTotalBalance.innerText=tbala; }
+
+function loadIncome(){ fetch(API+"?action=getIncome").then(r=>r.json()).then(d=>{ incomeData=d.slice(1).map((r,i)=>{ const dt=new Date(r[0]); r[0]=("0"+dt.getDate()).slice(-2)+"/"+("0"+(dt.getMonth()+1)).slice(-2)+"/"+dt.getFullYear(); r._index=i; return r; }); renderIncome(incomeData); }); }
+function renderIncome(data){ let tb=document.querySelector("#incomeTable tbody"); tb.innerHTML=""; let total=0;
+data.forEach((r)=>{ let tr=tb.insertRow(); r.forEach(c=>tr.insertCell().innerText=c); total+=Number(r[7])||0; let act=tr.insertCell(); if(isAdmin) act.innerHTML=`<button onclick="editIncomeRow(${r._index})">Edit</button>`; else act.innerText="No"; });
+iTT.innerText=total; iTotal.innerText=total; }
+
+// ===== Filters =====
+function filterWorkRange(){ let f=workFrom.value,t=workTo.value,m=workMonth.value,y=workYear.value; let filtered=workData;
+if(f && !t) t=f; if(t && !f) f=t;
+filtered = filtered.filter(r=>{ const dt = r[0].split("/"); const rDate = dt[2]+"-"+dt[1]+"-"+dt[0]; if(f && rDate<f) return false; if(t && rDate>t) return false; return true; });
+if(m) filtered = filtered.filter(r=>parseInt(r[0].split("/")[1])==m); if(y) filtered = filtered.filter(r=>parseInt(r[0].split("/")[2])==y);
+renderWork(filtered); }
+function resetWorkFilter(){ workFrom.value=""; workTo.value=""; workMonth.value=""; workYear.value=""; renderWork(workData); }
+
+function filterIncomeRange(){ let f=incomeFrom.value,t=incomeTo.value,m=incomeMonth.value,y=incomeYear.value; let filtered=incomeData;
+if(f && !t) t=f; if(t && !f) f=t;
+filtered = filtered.filter(r=>{ const dt = r[0].split("/"); const rDate = dt[2]+"-"+dt[1]+"-"+dt[0]; if(f && rDate<f) return false; if(t && rDate>t) return false; return true; });
+if(m) filtered = filtered.filter(r=>parseInt(r[0].split("/")[1])==m); if(y) filtered = filtered.filter(r=>parseInt(r[0].split("/")[2])==y);
+renderIncome(filtered); }
+function resetIncomeFilter(){ incomeFrom.value=""; incomeTo.value=""; incomeMonth.value=""; incomeYear.value=""; renderIncome(incomeData); }
+
+// ===== Edit & Cancel =====
+function editWorkRow(idx){ let r=workData[idx]; hideAll(); workEntry.style.display="block";
+let dt=r[0].split("/"); w_date.value=new Date(dt[2]+"-"+dt[1]+"-"+dt[0]).toISOString().slice(0,10); w_worker.value=r[1]; w_type.value=r[2]; w_salary.value=r[3]; w_rate.value=r[4]; w_totalSalary.value=r[5]; w_other.value=r[6]; w_balance.value=r[7]; editWorkIndex=idx; }
+function editIncomeRow(idx){ let r=incomeData[idx]; hideAll(); incomeEntry.style.display="block";
+let dt=r[0].split("/"); i_date.value=new Date(dt[2]+"-"+dt[1]+"-"+dt[0]).toISOString().slice(0,10); i_provider.value=r[1]; i_method.value=r[2]; i_receiver.value=r[3]; i_details.value=r[4]; i_qty.value=r[5]; i_rate.value=r[6]; i_total.value=r[7]; editIncomeIndex=idx; }
+function cancelWorkEdit(){ resetWorkForm(); hideAll(); workView.style.display="block"; loadWork(); }
+function cancelIncomeEdit(){ resetIncomeForm(); hideAll(); incomeView.style.display="block"; loadIncome(); }
+
+// ===== Print =====
+function printWorkTable(){ const statsHTML = `মোট বেতন: ${wTS.innerText} | মোট অন্যান্য খরচ: ${wTO.innerText} | মোট ব্যালেন্স: ${wTB.innerText}`; const tableHTML = document.getElementById("workTable").outerHTML; printLikeFileOne("প্রতিদিনের কাজের হিসাব", statsHTML, tableHTML); }
+function printIncomeTable(){ const statsHTML = `মোট আয়: ${iTT.innerText}`; const tableHTML = document.getElementById("incomeTable").outerHTML; printLikeFileOne("প্রতিদিনের আয় হিসাব", statsHTML, tableHTML); }
+
+function printLikeFileOne(titleText, statsHTML, tableHTML){
+  const newWin = window.open('', '', 'width=900,height=650');
+  newWin.document.write(`
+  <html><head><title>প্রিন্ট</title>
+  <style>
+    body { font-family: Arial, sans-serif; text-align:center; margin:20px; color:#000; }
+    table { border-collapse: collapse; margin:0 auto; width:95%; table-layout:auto; }
+    th, td { border:1px solid #555; padding:6px 10px; line-height:1.2; font-size:13px; text-align:center; white-space:nowrap; }
+    th { background:#009688; color:#fff; font-weight:bold; }
+    .stats { margin:10px 0; font-weight:bold; }
+    th:last-child, td:last-child { display:none; }
+    @media print { body{margin:0;} table{width:100%; font-size:12px;} }
+  </style></head>
+  <body>
+    <h2>${titleText}</h2>
+    <div class="stats">${statsHTML}</div>
+    ${tableHTML}
+  </body></html>`);
+  newWin.document.close();
+  newWin.print();
+}
+</script>
+</div>
+</body>
+</html>

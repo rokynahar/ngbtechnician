@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>হাজিরা খাতা</title>
+
+<style>
+
+/* ===== SAME YOUR FULL CSS (NO CHANGE) ===== */
+
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial;}
+body{background:#f1f5f9;padding:20px;text-align:center;}
+
+.login-box{background:white;max-width:400px;margin:50px auto;padding:25px;border-radius:10px;}
+.login-box h2{margin-bottom:20px;}
+.login-box input{width:100%;padding:12px;margin-bottom:15px;border:1px solid #ccc;border-radius:5px;}
+.login-btn{width:100%;background:#0d6efd;color:white;border:none;padding:12px;}
+
+#mainContent{display:none;}
+
+.header{background:#0d6efd;color:white;padding:10px;border-radius:10px;font-size:22px;font-weight:bold;max-width:500px;margin:auto;}
+
+.btn-area{display:flex;justify-content:center;align-items:center;gap:6px;flex-wrap:wrap;margin-top:25px;}
+.btn-area button{padding:6px 12px;font-size:13px;border-radius:6px;}
+
+button{border:none;padding:5px 10px;border-radius:8px;cursor:pointer;color:white;font-size:14px;}
+
+.add-btn{background:#198754;}
+.view-btn{background:#dc3545;}
+.logout-btn{background:#6c757d;}
+.login-btn{background:#0d6efd;}
+.save-btn{background:#0d6efd;}
+.cancel-btn{background:#dc3545;}
+
+.popup{position:fixed;left:0;top:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:none;justify-content:center;align-items:center;z-index:999;}
+
+.popup-box{width:95%;max-width:420px;background:white;padding:20px;border-radius:10px;text-align:left;}
+
+.form-group{margin-bottom:15px;}
+.form-group label{display:block;margin-bottom:5px;font-weight:bold;}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:10px;border:1px solid #ccc;border-radius:5px;}
+
+.table-area{margin-top:30px;display:none;max-width:1200px;margin:auto;}
+
+.table-scroll{max-height:60vh;overflow-y:auto;overflow-x:auto;background:white;}
+
+.search-box{background:white;padding:15px;border-radius:10px;margin-bottom:15px;display:flex;justify-content:center;gap:5px;flex-wrap:wrap;}
+
+.summary{display:flex;gap:20px;margin-bottom:15px;flex-wrap:wrap;justify-content:center;}
+
+.card{background:white;padding:15px;border-radius:10px;min-width:180px;font-size:18px;font-weight:bold;}
+
+table{width:100%;border-collapse:collapse;background:white;}
+table th,table td{border:1px solid #ddd;padding:8px;font-size:14px;text-align:center;}
+
+/* PRINT */
+@media print{
+body *{visibility:hidden;}
+.table-area,.table-area *{visibility:visible;}
+.table-area{position:absolute;left:0;top:0;width:100%;}
+.search-box,.btn-area{display:none !important;}
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- LOGIN -->
+<div class="login-box" id="loginBox">
+
+<h2>লগিন</h2>
+
+<input type="text" id="username" placeholder="ইউজার নাম">
+<input type="password" id="password" placeholder="পাসওয়ার্ড">
+
+<button class="login-btn" onclick="login()">লগিন</button>
+
+
+</div>
+
+<!-- MAIN -->
+<div id="mainContent">
+
+<div class="header">হাজিরা খাতা</div>
+
+<div class="btn-area">
+
+<button class="add-btn" onclick="openPopup()">হাজিরা এন্ট্রি</button>
+<button class="view-btn" onclick="loadAttendance()">হাজিরা ভিউ</button>
+<button class="logout-btn" onclick="closeTable()">ক্যানসেল</button>
+<button class="logout-btn" onclick="logout()">লগআউট</button>
+
+</div>
+
+</div>
+
+<!-- POPUP (FULL RESTORED LIKE YOUR ORIGINAL) -->
+<div class="popup" id="popup">
+
+<div class="popup-box">
+
+<form id="attendanceForm">
+
+<input type="hidden" id="rowIndex">
+
+<div class="form-group">
+<label>তারিখ</label>
+<input type="date" id="date">
+</div>
+
+<div class="form-group">
+<label>কর্মীর নাম</label>
+<select id="worker"></select>
+</div>
+
+<div class="form-group">
+<label>সময়</label>
+<select id="time">
+<option value="ফুল টাইম">ফুল টাইম</option>
+<option value="সকাল">সকাল</option>
+<option value="বিকাল">বিকাল</option>
+<option value="হাজিরা নাই">হাজিরা নাই</option>
+</select>
+</div>
+
+<div class="form-group">
+<label>কাজের ধরন</label>
+<textarea id="workType"></textarea>
+</div>
+
+<div class="btn-flex">
+<button type="submit" class="save-btn">সেভ করুন</button>
+<button type="button" class="cancel-btn" onclick="closePopup()">ক্যানসেল</button>
+<button class="logout-btn" onclick="logout()">লগআউট</button>
+</div>
+
+</form>
+
+</div>
+</div>
+
+<!-- TABLE (SEARCH + PRINT SAME WORKING) -->
+<div class="table-area" id="tableArea">
+
+<div class="search-box">
+
+<select id="searchWorker">
+<option value="">সব কর্মী</option>
+</select>
+
+<input type="date" id="fromDate">
+<input type="date" id="toDate">
+
+<input type="number" id="month" placeholder="মাস">
+<input type="number" id="year" placeholder="বছর">
+
+<button onclick="filterData()" style="background:#0d6efd;">সার্চ</button>
+<button onclick="resetFilter()" style="background:#6c757d;">রিসেট</button>
+<button onclick="printTable()" style="background:#198754;">প্রিন্ট</button>
+
+</div>
+
+<div class="summary">
+
+<div class="card">মোট দিন: <span id="totalDays">0</span></div>
+<div class="card">মোট টাকা: <span id="totalAmount">0</span></div>
+
+</div>
+
+<div class="table-scroll">
+
+<table>
+<thead>
+<tr>
+<th>তারিখ</th>
+<th>কর্মী</th>
+<th>কাজ</th>
+<th>সময়</th>
+<th>Amount</th>
+<th>User</th>
+<th>Edit</th>
+</tr>
+</thead>
+
+<tbody id="tableBody"></tbody>
+
+</table>
+
+</div>
+</div>
+
+<script>
+
+const scriptURL = "https://script.google.com/macros/s/AKfycbw6Pf6qx8YxrLIcgxmHerNUoAiy2o2-_R_4y5abCSK56sNW1Rpvu91bqebjYsnB4Dzndw/exec";
+
+let attendanceData = [];
+let editMode = false;
+
+let currentUser = "";
+let currentRole = "user";
+
+/* ================= LOGIN ================= */
+
+async function login(){
+
+let res = await fetch(scriptURL+"?action=login&username="+username.value+"&password="+password.value);
+let data = await res.json();
+
+if(data.status=="success"){
+
+currentUser = username.value;
+currentRole = data.role;
+
+loginBox.style.display="none";
+mainContent.style.display="block";
+
+loadEmployees();
+}
+}
+
+/* ================= EMP ================= */
+
+async function loadEmployees(){
+let res = await fetch(scriptURL+"?action=getEmployees");
+let data = await res.json();
+
+worker.innerHTML="";
+searchWorker.innerHTML='<option value="">সব কর্মী</option>';
+
+data.forEach(e=>{
+worker.innerHTML+=`<option value="${e.name}">${e.name}</option>`;
+searchWorker.innerHTML+=`<option value="${e.name}">${e.name}</option>`;
+});
+}
+
+/* ================= LOAD ================= */
+
+async function loadAttendance(){
+let res = await fetch(scriptURL+"?action=getAttendance");
+attendanceData = await res.json();
+render(attendanceData);
+tableArea.style.display="block";
+}
+
+/* ================= RENDER ================= */
+
+function render(data){
+
+tableBody.innerHTML="";
+let total=0;
+
+data.forEach(r=>{
+total += Number(r.amount);
+
+tableBody.innerHTML+=`
+<tr>
+<td>${r.date}</td>
+<td>${r.worker}</td>
+<td>${r.workType}</td>
+<td>${r.time}</td>
+<td>${r.amount}</td>
+<td>${r.username}</td>
+<td><button onclick="editRow(${r.rowIndex})">Edit</button></td>
+</tr>`;
+});
+
+totalDays.innerText=data.length;
+totalAmount.innerText=total;
+}
+
+function logout(){
+    location.reload();
+}
+
+/* ================= EDIT CONTROL ================= */
+
+function editRow(i){
+
+if(currentRole !== "admin"){
+alert("Only admin can edit");
+return;
+}
+
+editMode = true;
+
+let r = attendanceData.find(x=>x.rowIndex==i);
+
+rowIndex.value = r.rowIndex;
+date.value = r.date;
+worker.value = r.worker;
+time.value = r.time;
+workType.value = r.workType;
+
+popup.style.display="flex";
+}
+
+/* ================= SAVE ================= */
+
+attendanceForm.onsubmit = async function(e){
+e.preventDefault();
+
+let data = {
+username: currentUser,
+role: currentRole,
+date: date.value,
+worker: worker.value,
+time: time.value,
+workType: workType.value
+};
+
+if(editMode) data.rowIndex = rowIndex.value;
+
+let res = await fetch(scriptURL,{
+method:"POST",
+body:JSON.stringify(data)
+});
+
+let result = await res.text();
+
+if(result=="এই কর্মীর হাজিরা ইতিমধ্যে করা হয়েছে"){
+    alert("ইতিপূর্বে এই তারিখে এই কর্মীর হাজিরা করা হয়েছে");
+    return;
+}
+
+if(result=="no_permission"){
+    alert("Only admin can edit");
+    return;
+}
+
+if(result=="saved"){
+    alert("হাজিরা সফলভাবে সেভ হয়েছে");
+}
+
+if(result=="updated"){
+    alert("হাজিরা সফলভাবে আপডেট হয়েছে");
+}
+
+editMode=false;
+attendanceForm.reset();
+popup.style.display="none";
+
+loadAttendance();
+};
+
+/* ================= FILTER + PRINT ================= */
+
+function filterData(){
+
+let name=searchWorker.value;
+let from=fromDate.value;
+let to=toDate.value;
+let monthVal=month.value;
+let yearVal=year.value;
+
+let filtered=attendanceData.filter(r=>{
+let d=new Date(r.date);
+
+if(name && r.worker!=name) return false;
+if(from && new Date(r.date)<new Date(from)) return false;
+if(to && new Date(r.date)>new Date(to)) return false;
+if(monthVal && (d.getMonth()+1)!=monthVal) return false;
+if(yearVal && d.getFullYear()!=yearVal) return false;
+
+return true;
+});
+
+render(filtered);
+}
+
+function resetFilter(){ render(attendanceData); }
+function printTable(){ window.print(); }
+
+function closeTable(){ tableArea.style.display="none"; }
+
+function openPopup(){
+editMode=false;
+attendanceForm.reset();
+popup.style.display="flex";
+}
+
+function closePopup(){
+popup.style.display="none";
+}
+
+function logout(){ location.reload(); }
+
+</script>
+
+</body>
+</html>
