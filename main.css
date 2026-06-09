@@ -1,3 +1,6 @@
+body {
+    background: red !important;
+}
 .language-switch {
       margin-bottom: 20px;
     }
