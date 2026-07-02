@@ -1,641 +1,259 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ISP SYSTEM</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=3.0, user-scalable=yes">
+<title>NGB ISP Inventory System</title>
 
 <style>
-
-/* =========================
-BASE STYLE
-========================= */
-
 body{
-margin:0;
-font-family:Arial;
-background:#eef3f9;
-text-align:center;
+  font-family:'Segoe UI',Arial,sans-serif;
+  font-size:20px;margin:0;padding:0;
+  display:flex;justify-content:center;
+  background:#D177C6;text-align:center;
 }
-
-/* =========================
-LOGIN
-========================= */
-
-#loginBox{padding-top:30px;}
-
-.loginCard{
-max-width:320px;
-margin:auto;
-background:#fff;
-padding:15px;
-border-radius:12px;
-box-shadow:0 2px 10px rgba(0,0,0,.1);
+.container{
+  width:95%;max-width:480px;
+  background:#0988B0;padding:20px;
+  margin:15px 0;border-radius:20px;
+  overflow-x:hidden;
 }
-
-/* =========================
-DASHBOARD
-========================= */
-
-#dash{
-display:none;
-padding:10px;
+h2{font-size:28px;margin-bottom:20px}
+h3{font-size:24px;margin-bottom:15px}
+.card{
+  background:#3B54D1;border-radius:15px;
+  margin-bottom:20px;padding:20px;
+  box-shadow:5px 5px 10px #c2cbd7,-5px -5px 10px #fff;
 }
-
-/* =========================
-FORM GRID
-========================= */
-
-.formGrid{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
-gap:10px;
-margin-top:10px;
-}
-
-.formItem{
-text-align:left;
-background:#f7fafc;
-padding:5px;
-border-radius:8px;
-}
-
-/* =========================
-INPUTS
-========================= */
-
-label{
-font-size:12px;
-font-weight:bold;
-display:block;
-margin-bottom:4px;
-}
-
-input,select{
-width:100%;
-padding:3px 5px;
-font-size:10px;
-height:26px;
-border:1px solid #ccc;
-border-radius:5px;
-text-align:center;
-}
-
-/* =========================
-BUTTONS
-========================= */
-
 button{
-padding:7px 12px;
-border:none;
-border-radius:6px;
-cursor:pointer;
-font-size:12px;
-color:#fff;
+  font-size:18px;padding:12px 20px;margin:8px;
+  border:none;border-radius:10px;
+  font-weight:bold;color:#fff;cursor:pointer;
+  transition: all 0.3s ease;
+}
+button:hover{
+  transform: scale(1.05);
+  box-shadow: 0 0 12px rgba(79,172,254,0.9);
 }
 
-.save{background:green}
-.search{background:#009688}
-.cancel{background:red}
-.print{background:#333}
-.edit{background:orange}
-.logout{background:#444}
-
-/* =========================
-SEARCH SECTION
-========================= */
-
-.searchWrap{
-display:flex;
-justify-content:center;
-gap:5px;
-flex-wrap:wrap;
-margin:5px 0 10px 0;
+label{display:block;margin:10px 0;font-weight:bold;text-align:left}
+input,select{
+  width:100%;padding:12px;font-size:16px;
+  border:none;border-radius:8px;margin-bottom:12px;
+  background:#f2f6fa;
+  box-shadow:inset 3px 3px 6px #c2cbd7,
+             inset -3px -3px 6px #fff;
 }
 
-.searchWrap input{
-padding:5px;
-font-size:11px;
-width:140px;
-}
-
-.searchWrap button{
-padding:5px 8px;
-font-size:11px;
-}
-
-/* =========================
-TABLE
-========================= */
-
-.tableWrap{
-width:100%;
-overflow-x:auto;
--webkit-overflow-scrolling:touch;
+/* Scrollable table container */
+.table-container{
+  overflow-x:auto;
+  margin-top:15px;
+  -webkit-overflow-scrolling: touch;
 }
 
 table{
-width:100%;
-min-width:800px;
-border-collapse:collapse;
-margin-top:10px;
+  width:100%;border-collapse:collapse;
+  font-size:14px;
+  word-wrap: break-word;
 }
+th,td{border:1px solid #ccc;padding:8px;white-space:nowrap}
+th{background:#4facfe;color:#fff}
+tr:nth-child(even){background:#eef6ff}
 
-th,td{
-border:1px solid #ddd;
-padding:6px;
-font-size:12px;
-text-align:center;
+#loginSection,#addForm,#stockView,#productForm{display:none}
+
+/* Responsive adjustments for very small screens */
+@media(max-width:360px){
+  body{font-size:16px}
+  h2{font-size:22px}
+  h3{font-size:18px}
+  button{font-size:14px;padding:10px}
+  input,select{font-size:14px;padding:10px}
+  table{font-size:12px}
 }
-
-th{
-background:#222;
-color:#fff;
-}
-
-/* =========================
-POPUP
-========================= */
-
-.popup{
-display:none;
-position:fixed;
-top:0;
-left:0;
-width:100%;
-height:100%;
-background:rgba(0,0,0,.5);
-overflow-y:auto;
-z-index:9999;
-}
-
-.popupBox{
-background:#fff;
-width:90%;
-max-width:400px;
-margin:30px auto;
-padding:15px;
-border-radius:12px;
-max-height:90vh;
-overflow-y:auto;
-}
-
-.popupBox input,
-.popupBox select{
-width:100%;
-margin:5px 0;
-padding:7px;
-}
-
-/* =========================
-MOBILE RESPONSIVE
-========================= */
-
-@media (max-width:600px){
-
-body{
-font-size:14px;
-}
-
-.searchWrap{
-flex-direction:column;
-align-items:center;
-}
-
-.searchWrap input,
-.searchWrap button{
-width:95%;
-max-width:350px;
-}
-
-button{
-font-size:13px;
-padding:10px;
-}
-
-.popupBox{
-width:95%;
-margin:15px auto;
-}
-
-.formGrid{
-grid-template-columns:1fr;
-}
-
-th,td{
-font-size:11px;
-white-space:nowrap;
-}
-
-}
-
 </style>
 </head>
 
 <body>
+<div class="container">
 
-<!-- =========================
-LOGIN SECTION
-========================= -->
+<h2>📦 NGB ISP Inventory System</h2>
 
-<div id="loginBox">
-<div class="loginCard">
-<h3>LOGIN</h3>
-<input id="u" placeholder="Username"><br><br>
-<input id="p" type="password" placeholder="Password"><br><br>
-<button class="save" onclick="login()">LOGIN</button>
-</div>
+<div id="mainButtons">
+  <button onclick="showLogin('add')" style="background:#4facfe">নতুন এন্ট্রি</button>
+  <button onclick="showLogin('stock')" style="background:#43e97b">স্টক ভিউ</button>
+  <button onclick="showLogin('product')" style="background:#f5576c">নতুন প্রোডাক্ট</button>
 </div>
 
-<!-- =========================
-DASHBOARD SECTION
-========================= -->
-
-<div id="dash">
-
-<button class="logout" onclick="location.reload()">LOGOUT</button>
-<br><br>
-
-<button class="save" onclick="formPopup.style.display='block'">
-ADD CUSTOMER
-</button>
-
-<br><br>
-
-<!-- =========================
-ADD CUSTOMER POPUP
-========================= -->
-
-<div id="formPopup" class="popup">
-<div class="popupBox">
-
-<h3>ADD সংযোগ হিসাব</h3>
-
-<div class="formGrid">
-
-<div class="formItem">
-<label>তারিখ</label>
-<input type="date" id="date">
+<!-- LOGIN -->
+<div id="loginSection" class="card">
+  <h3>🔐 লগইন</h3>
+  <label>ইউজার নাম</label><input id="username">
+  <label>পাসওয়ার্ড</label><input id="password" type="password">
+  <button onclick="login()" style="background:#4facfe">লগইন</button>
+  <button onclick="cancelAll()" style="background:#dc3545">❌ বাতিল</button>
+  <p id="loginMsg" style="color:red"></p>
 </div>
 
-<div class="formItem">
-<label>নাম</label>
-<input id="name" placeholder="Enter customer name">
+<!-- ADD ITEM -->
+<div id="addForm" class="card">
+  <h3>নতুন মাল যোগ</h3>
+  <label>Category</label>
+  <select id="category" onchange="loadProducts(this.value)"></select>
+  <label>Product</label>
+  <select id="productName"></select>
+  <label>Qty</label><input id="qty" type="number">
+  <label>Unit</label>
+  <select id="unit"><option>pcs</option><option>meter</option></select>
+  <label>Price</label><input id="price" type="number">
+  <label>Type</label>
+  <select id="type"><option>IN</option><option>OUT</option></select>
+  <label>Note</label><input id="note">
+  <button onclick="saveItem()" style="background:#43e97b">💾 সেভ</button>
+  <button onclick="cancelAll()" style="background:#dc3545">❌ বাতিল</button>
 </div>
 
-<div class="formItem">
-<label>ইউজার আইডি/সিরিয়াল</label>
-<input id="uid" placeholder="Enter user ID">
+<!-- STOCK -->
+<div id="stockView" class="card">
+  <h3>📊 স্টক ভিউ</h3>
+  <label>Category</label>
+  <select id="searchCategory" onchange="loadProductsForSearch(this.value)"></select>
+  <label>Product</label>
+  <select id="searchProduct"></select>
+  <button onclick="loadStock()" style="background:#4facfe">🔍 সার্চ</button>
+  <button onclick="cancelAll()" style="background:#dc3545">❌ বাতিল</button>
+
+  <h3 id="totalINOUT"></h3>
+
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th><th>Category</th><th>Product</th>
+          <th>Qty</th><th>Unit</th><th>Price</th>
+          <th>Type</th><th>Note</th>
+        </tr>
+      </thead>
+      <tbody id="stockBody"></tbody>
+    </table>
+  </div>
 </div>
 
-<div class="formItem">
-<label>ফাইবার/আজি ৬</label>
-<input id="cable" placeholder="Enter cable meter">
-</div>
-
-<div class="formItem">
-<label>টিজের ধরণ</label>
-<select id="tj"></select>
-</div>
-
-<div class="formItem">
-<label>পিএসসি</label>
-<select id="plc"></select>
-</div>
-
-<div class="formItem">
-<label>প্যাচ কড </label>
-<select id="patch"></select>
-</div>
-
-</div>
-
-<br>
-
-<button class="save" onclick="save()">SAVE</button>
-<button class="cancel" onclick="formPopup.style.display='none'">CLOSE</button>
-
-</div>
-</div>
-
-<!-- =========================
-SEARCH SECTION
-========================= -->
-
-<div class="searchWrap">
-
-<input id="search" placeholder="Search" oninput="filterTable()">
-<input id="from" type="date" oninput="filterTable()">
-<input id="to" type="date" oninput="filterTable()">
-
-<button class="search" onclick="filterTable()">SEARCH</button>
-<button class="cancel" onclick="clearSearch()">CLEAR</button>
-<button class="print" onclick="printTable()">PRINT</button>
-
-</div>
-
-<!-- =========================
-TABLE SECTION
-========================= -->
-
-<div class="tableWrap">
-
-<table>
-<thead>
-<tr>
-<th>Date</th>
-<th>Name</th>
-<th>User ID/SN</th>
-<th>Cable Meter</th>
-<th>TJ</th>
-<th>PLC</th>
-<th>Patch Code</th>
-<th>Editor</th>
-<th>Edit</th>
-</tr>
-</thead>
-
-<tbody id="tb"></tbody>
-</table>
-
-</div>
-
-<!-- =========================
-EDIT POPUP
-========================= -->
-
-<div id="popup" class="popup">
-<div class="popupBox">
-
-<h3>Edit Data</h3>
-
-<input type="date" id="e_date">
-<input id="e_name">
-<input id="e_uid">
-<input id="e_cable">
-<select id="e_tj"></select>
-<select id="e_plc"></select>
-<select id="e_patch"></select>
-
-<button class="save" onclick="updateRow()">UPDATE</button>
-<button class="cancel" onclick="popup.style.display='none'">CLOSE</button>
-
-</div>
+<!-- PRODUCT -->
+<div id="productForm" class="card">
+  <h3>নতুন প্রোডাক্ট</h3>
+  <label>Category</label><input id="newCategory">
+  <label>Product</label><input id="newProduct">
+  <button onclick="saveNewProduct()" style="background:#f5576c">💾 সেভ</button>
+  <button onclick="cancelAll()" style="background:#dc3545">❌ বাতিল</button>
+  <p id="productMsg"></p>
 </div>
 
 </div>
-
-<!-- =========================
-SCRIPT SECTION
-========================= -->
 
 <script>
+const API_URL="https://script.google.com/macros/s/AKfycbwhG9CrZQ4qRLtWUdvwqw3og-D2k7O_xu1iPAh49853kvVFoSmsVLMrl7ChEzClbrqsng/exec";
 
-const API="https://script.google.com/macros/s/AKfycbypIwiF9G83fBt9eQo43I1F9yrW_Wh50NomedFlYZ4NJuqPFQme3yWrVY9GacvUHkRrSQ/exec";
+function api(a,d={}){d.action=a;
+  return fetch(API_URL,{method:"POST",body:JSON.stringify(d)}).then(r=>r.json());
+}
 
-let user="", role="", editRowId=0;
+let currentAction="";
 
-/* LOGIN */
+function hideAll(){
+ ["mainButtons","loginSection","addForm","stockView","productForm"]
+ .forEach(i=>document.getElementById(i).style.display="none");
+}
+function cancelAll(){
+ hideAll();
+ document.getElementById("mainButtons").style.display="block";
+}
+
+function showLogin(a){
+ currentAction=a;hideAll();
+ loginSection.style.display="block";
+}
+
 function login(){
-fetch(API,{
-method:"POST",
-body:new URLSearchParams({
-action:"login",
-username:u.value,
-password:p.value
-})
-})
-.then(r=>r.json())
-.then(res=>{
-if(res.status){
-user=res.user;
-role=res.role;
-loginBox.style.display="none";
-dash.style.display="block";
-loadProducts();
-load();
-}
-});
+ api("login",{username:username.value,password:password.value})
+ .then(r=>{
+  if(r.status==="success"){
+    hideAll();
+    if(currentAction==="add"){addForm.style.display="block";loadCategories();}
+    if(currentAction==="stock"){stockView.style.display="block";loadCategoriesForSearch();}
+    if(currentAction==="product"){productForm.style.display="block";}
+  }else loginMsg.innerText="ভুল ইউজার নাম বা পাসওয়ার্ড";
+ });
 }
 
-/* PRODUCTS */
-function loadProducts(){
-fetch(API,{
-method:"POST",
-body:new URLSearchParams({action:"products"})
-})
-.then(r=>r.json())
-.then(d=>{
-
-tj.innerHTML =
-`<option value="" selected disabled>Select TJ</option>` +
-d.tj.map(x=>`<option value="${x}">${x}</option>`).join("");
-
-plc.innerHTML =
-`<option value="" selected disabled>Select PLC</option>` +
-d.plc.map(x=>`<option value="${x}">${x}</option>`).join("");
-
-patch.innerHTML =
-`<option value="" selected disabled>Select Patch</option>` +
-d.patch.map(x=>`<option value="${x}">${x}</option>`).join("");
-
-tj.value="";
-plc.value="";
-patch.value="";
-
-e_tj.innerHTML=tj.innerHTML;
-e_plc.innerHTML=plc.innerHTML;
-e_patch.innerHTML=patch.innerHTML;
-
-});
+function loadCategories(){
+ api("getCategories").then(c=>{
+  category.innerHTML="";
+  c.forEach(x=>category.innerHTML+=`<option>${x}</option>`);
+  loadProducts(category.value);
+ });
+}
+function loadProducts(c){
+ api("getProducts",{category:c}).then(p=>{
+  productName.innerHTML="";
+  p.forEach(x=>productName.innerHTML+=`<option>${x}</option>`);
+ });
+}
+function loadCategoriesForSearch(){
+ api("getCategories").then(c=>{
+  searchCategory.innerHTML="";
+  c.forEach(x=>searchCategory.innerHTML+=`<option>${x}</option>`);
+  loadProductsForSearch(searchCategory.value);
+ });
+}
+function loadProductsForSearch(c){
+ api("getProducts",{category:c}).then(p=>{
+  searchProduct.innerHTML='<option value="">--All--</option>';
+  p.forEach(x=>searchProduct.innerHTML+=`<option>${x}</option>`);
+ });
 }
 
-/* SAVE */
-function save(){
-fetch(API,{
-method:"POST",
-body:new URLSearchParams({
-action:"add",
-date:document.getElementById("date").value,
-name:document.getElementById("name").value,
-userId:document.getElementById("uid").value,
-cable:document.getElementById("cable").value,
-tj:document.getElementById("tj").value,
-plc:document.getElementById("plc").value,
-patch:document.getElementById("patch").value,
-user:user
-})
-})
-.then(()=>{
-document.getElementById("date").value="";
-document.getElementById("name").value="";
-document.getElementById("uid").value="";
-document.getElementById("cable").value="";
+function saveItem(){
+ api("addItem",{data:{
+  category:category.value,name:productName.value,
+  qty:qty.value,unit:unit.value,
+  price:price.value,type:type.value,note:note.value
+ }}).then(m=>{
+   alert(m);
 
-formPopup.style.display="none";
-load();
-
-});
+   // ফর্ম ফাঁকা করা
+   qty.value = '';
+   price.value = '';
+   note.value = '';
+   unit.selectedIndex = 0;
+   type.selectedIndex = 0;
+   category.selectedIndex = 0;
+   loadProducts(category.value);
+ });
 }
 
-/* LOAD */
-function load(){
-fetch(API)
-.then(r=>r.json())
-.then(data=>{
+function loadStock(){
+ api("getStock",{category:searchCategory.value,product:searchProduct.value})
+ .then(r=>{
+  const balance = r.totalIN - r.totalOUT;
+  totalINOUT.innerText=`Total IN: ${r.totalIN} | Total OUT: ${r.totalOUT} | Balance: ${balance}`;
 
-let html="";
-
-for(let i=1;i<data.length;i++){
-let r=data[i];
-let rowIndex=i+1;
-
-html+=`
-<tr>
-<td>${String(r[0]).split('T')[0]}</td>
-<td>${r[1]}</td>
-<td>${r[2]}</td>
-<td>${r[3]}</td>
-<td>${r[4]}</td>
-<td>${r[5]}</td>
-<td>${r[6]}</td>
-<td>${r[7]}</td>
-
-<td>
-${role==="admin"
-? `<button class="edit" onclick="openEdit(${rowIndex},'${String(r[0]).split("T")[0]}','${r[1]}','${r[2]}','${r[3]}','${r[4]}','${r[5]}','${r[6]}')">Edit</button>`
-:""}
-</td>
-
-</tr>`;
+  stockBody.innerHTML="";
+  r.rows.forEach(x=>{
+   stockBody.innerHTML+=`<tr>
+    <td>${new Date(x[0]).toLocaleDateString()}</td>
+    <td>${x[1]}</td><td>${x[2]}</td>
+    <td>${x[3]}</td><td>${x[4]}</td>
+    <td>${x[5]}</td><td>${x[6]}</td><td>${x[7]}</td>
+   </tr>`;
+  });
+ });
 }
 
-tb.innerHTML=html;
-filterTable();
-
-});
+function saveNewProduct(){
+ api("addProduct",{category:newCategory.value,productName:newProduct.value})
+ .then(m=>productMsg.innerText=m);
 }
-
-/* EDIT */
-function openEdit(row,date,name,id,cable,tjVal,plcVal,patchVal){
-
-editRowId=row;
-
-e_date.value=date;
-e_name.value=name;
-e_uid.value=id;
-e_cable.value=cable;
-
-e_tj.value=tjVal;
-e_plc.value=plcVal;
-e_patch.value=patchVal;
-
-popup.style.display="block";
-}
-
-/* UPDATE */
-function updateRow(){
-fetch(API,{
-method:"POST",
-body:new URLSearchParams({
-action:"edit",
-row:editRowId,
-date:e_date.value,
-name:e_name.value,
-userId:e_uid.value,
-cable:e_cable.value,
-tj:e_tj.value,
-plc:e_plc.value,
-patch:e_patch.value,
-user:user
-})
-})
-.then(()=>{
-
-popup.style.display="none";
-load();
-
-});
-}
-
-/* PRINT */
-function printTable(){
-
-let w=window.open("");
-
-let table=document.querySelector("table").cloneNode(true);
-
-for(let r of table.rows){
-r.deleteCell(-1);
-}
-
-w.document.write(`
-<html>
-<head>
-<title>Print</title>
-
-<style>
-body{font-family:Arial;padding:20px;}
-table{width:100%;border-collapse:collapse;}
-th,td{border:1px solid #000;padding:8px;text-align:center;}
-th{background:#ddd;}
-</style>
-
-</head>
-<body>
-${table.outerHTML}
-</body>
-</html>
-`);
-
-w.document.close();
-w.print();
-
-}
-
-/* CLEAR */
-function clearSearch(){
-search.value="";
-from.value="";
-to.value="";
-filterTable();
-}
-
-/* DATE */
-function parseDateSafe(str){
-if(!str) return null;
-return new Date(str);
-}
-
-/* FILTER */
-function filterTable(){
-
-let keyword=search.value.toLowerCase().trim();
-let fromDate=from.value?new Date(from.value+"T00:00:00"):null;
-let toDate=to.value?new Date(to.value+"T23:59:59"):null;
-
-let rows=tb.getElementsByTagName("tr");
-
-for(let i=0;i<rows.length;i++){
-
-let cells=rows[i].getElementsByTagName("td");
-if(cells.length===0) continue;
-
-let text=rows[i].innerText.toLowerCase();
-let rowDate=parseDateSafe(cells[0].innerText.trim());
-
-let textMatch=text.includes(keyword);
-
-let dateMatch=true;
-if(rowDate){
-if(fromDate) dateMatch=rowDate>=fromDate;
-if(toDate) dateMatch=rowDate<=toDate;
-}
-
-rows[i].style.display=(textMatch && dateMatch)?"":"none";
-}
-}
-
 </script>
 
 </body>
