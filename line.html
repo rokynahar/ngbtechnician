@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>NGB Dish Customer Management</title>
+
+<style>
+
+html,
+body{
+    overflow-x:hidden;
+}
+
+body{
+    font-family:'Segoe UI',Arial,sans-serif;
+    background:linear-gradient(135deg,#e3f2fd,#f5f5f5);
+    margin:0;
+    padding:20px;
+    }
+
+.box{
+    background:#fff;
+    max-width:1200px;
+    margin:auto;
+    padding:25px;
+    border-radius:15px;
+    box-shadow:0 8px 25px rgba(0,0,0,.15);
+    }
+
+input,select,button{
+padding:10px;
+margin:5px;
+font-size:15px;
+}
+
+button{
+
+background:#1565c0;
+color:#fff;
+border:none;
+padding:12px 18px;
+margin:5px;
+border-radius:8px;
+cursor:pointer;
+font-weight:bold;
+transition:.3s;
+
+}
+
+button:hover{
+
+background:#0d47a1;
+transform:translateY(-2px);
+
+}
+
+.login{
+
+width:360px;
+margin:70px auto;
+background:#fff;
+padding:35px;
+border-radius:18px;
+box-shadow:0 10px 30px rgba(0,0,0,.2);
+
+}
+
+
+.login h2{
+color:#1565c0;
+margin-bottom:20px;
+
+}
+
+
+.login input{
+width:50%;
+box-sizing:border-box;
+margin:10px auto;
+display:block;
+border:1px solid #ccc;
+border-radius:5px;
+
+}
+
+
+.login button{
+width:40%;
+padding:12px;
+font-size:18px;
+
+}
+
+#main{
+display:none;
+}
+
+.form{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:10px;
+    align-items:start;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+margin-top:15px;
+}
+
+th{
+background:#1565c0;
+color:white;
+}
+
+td,th{
+border:1px solid #ccc;
+padding:2px;
+text-align:center;
+}
+
+
+*{
+text-align:center;
+}
+
+.modal{
+display:none;
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,.5);
+}
+
+.modalBox{
+background:white;
+width:350px;
+margin:80px auto;
+padding:20px;
+border-radius:8px;
+}
+
+/* মোবাইল */
+
+@media(max-width:768px){
+body{
+padding:10px;
+}
+
+.login{
+width:95%;
+padding:20px;
+
+}
+
+.box{
+padding:15px;
+
+}
+
+.form{
+grid-template-columns:1fr;
+
+}
+
+button{
+width:100%;
+margin:5px 0;
+
+}
+
+input,
+select{
+    width:100%;
+    max-width:100%;
+    box-sizing:border-box;
+}
+
+
+.tableWrap{
+    width:100%;
+    overflow-x:auto;
+    overflow-y:hidden;
+    -webkit-overflow-scrolling:touch;
+}
+
+#table{
+    min-width:900px;
+    width:900px;
+}
+
+@media (max-width:768px){
+body{
+    padding:10px;
+}
+
+.box{
+    padding:10px;
+}
+
+.login{
+    width:95%;
+}
+
+.form{
+    grid-template-columns:1fr;
+}
+
+button{
+    width:100%;
+}
+
+input,
+select{
+    width:100%;
+    box-sizing:border-box;
+}
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+
+<div class="login" id="loginBox">
+
+<h2>NGB ইউজার লগিন করুন</h2>
+<input id="username" placeholder="Username">
+<input id="password" type="password" placeholder="Password">
+<button onclick="login()">Login</button>
+</div>
+
+<div class="box" id="main">
+
+<h2>
+NGB Dish Customer Management
+</h2>
+
+<h3>
+Total Customer:
+<span id="totalCustomer">0</span>
+&nbsp;
+Total Node:
+<span id="totalNode">0</span>
+</h3>
+
+
+<div class="form">
+<input type="date" id="date">
+
+<select id="node">
+<option value="">
+Node ‍সিলেক্ট করুন
+</option>
+</select>
+
+<input id="name" placeholder="কাষ্টমার নাম ‍লিখুন">
+<input id="father" placeholder="পিতার নাম ‍লিখুন">
+<input id="address" placeholder="ঠিকানা লিখুন">
+<input id="mobile" placeholder="মোবাইল নম্বর লিখুন">
+
+
+<button onclick="saveCustomer()">Save Customer</button>
+<button onclick="resetForm()">Reset</button>
+</div>
+<br>
+<input id="newNode" placeholder="নতুন নোডস নাম লিখুন"><button onclick="addNode()">Add Node</button>
+
+<br>
+
+<button onclick="searchNode()">Node সার্চ করুন</button>
+
+<input id="search" placeholder="Search Name/Mobile/Node">
+
+<button onclick="searchData()">Search</button>
+<button onclick="loadCustomers()">View All</button>
+<button onclick="printData()">Print</button>
+<button onclick="logout()">Logout</button>
+
+<div class="tableWrap">
+<table id="table">
+
+<thead>
+
+<tr>
+<th>SL</th>
+<th>Date</th>
+<th>Name</th>
+<th>Father</th>
+<th>Address</th>
+<th>Mobile</th>
+<th>Node</th>
+<th class="userCol">Entry By</th>
+<th>Edit</th>
+
+</tr>
+
+</thead>
+
+<tbody id="tbody">
+
+</tbody>
+</table>
+</div>
+
+<div class="modal" id="editBox">
+<div class="modalBox">
+<h3>Edit Customer</h3>
+<input id="eDate" type="date">
+<input id="eName" placeholder="কাষ্টমারের নাম লিখুন">
+<input id="eFather" placeholder="পিতার নাম লিখুন">
+<input id="eAddress" placeholder="ঠিকানা লিখুন">
+<input id="eMobile" placeholder="মোবাইল নম্বর লিখুন">
+<select id="eNode"></select>
+
+<br>
+
+<button onclick="updateSave()">Update Save</button>
+<button onclick="closeEdit()">Close</button>
+
+</div>
+</div>
+</div>
+
+
+<script>
+
+const API_URL = "https://script.google.com/macros/s/AKfycbw5Ch3SfXHysPW8HnzuIyv-dAOOUzFbGWaFbOy9Z7Egchq0eAF92yJl0KUZ89pnLUelJA/exec";
+
+let user = "";
+let customerData = [];
+let role = "";
+
+
+
+//======= Login======== //
+
+
+function login(){
+fetch(API_URL,{
+method:"POST",
+body:JSON.stringify({
+action:"login",
+
+username:
+document.getElementById("username").value,
+password:
+document.getElementById("password").value
+
+})
+
+})
+
+.then(r=>r.json())
+.then(data=>{
+if(data.success){
+user=data.user;
+role=data.role;
+
+
+document.getElementById("loginBox").style.display="none";
+document.getElementById("main").style.display="block";
+loadNodes();
+loadCustomers();
+loadSummary();
+
+}else{
+
+alert("Login Failed");
+
+}
+
+});
+
+}
+
+
+
+//====== Load Summary=======//
+
+function loadSummary(){
+fetch(API_URL+"?action=summary")
+.then(r=>r.json())
+.then(data=>{
+
+document.getElementById("totalCustomer").innerHTML=
+data.totalCustomer;
+
+document.getElementById("totalNode").innerHTML=
+data.totalNode;
+
+});
+
+}
+
+
+
+//========== Load Node=========//
+
+function loadNodes(){
+fetch(API_URL+"?action=nodes")
+.then(r=>r.json())
+.then(data=>{
+
+
+let html='<option value="">Select Node</option>';
+
+data.forEach(n=>{
+html+=
+`<option>${n}</option>`;
+});
+
+document.getElementById("node").innerHTML=html;
+});
+
+}
+
+
+//======== Add Node========//
+
+
+function addNode(){
+if(role!="Admin"){
+alert("Edit Not Working");
+return;
+}
+
+
+fetch(API_URL,{
+method:"POST",
+body:JSON.stringify({
+action:"addNode",
+node:
+
+document.getElementById("newNode").value,
+user:user
+
+})
+
+})
+
+.then(r=>r.json())
+.then(data=>{
+alert(data.message);
+loadNodes();
+
+});
+
+}
+
+function searchNode(){
+
+let n=document.getElementById("node").value;
+document.getElementById("search").value=n;
+searchData();
+}
+
+
+//======= Save Customer==========//
+
+function saveCustomer(){
+if(document.getElementById("node").value==""){
+alert("Select Node First");
+return;
+
+}
+
+
+let obj={
+action:"saveCustomer",
+date:
+document.getElementById("date").value,
+
+name:
+document.getElementById("name").value,
+
+father:
+document.getElementById("father").value,
+
+address:
+document.getElementById("address").value,
+
+mobile:
+document.getElementById("mobile").value,
+
+node:
+document.getElementById("node").value,
+
+user:user
+
+};
+
+
+fetch(API_URL,{
+method:"POST",
+body:JSON.stringify(obj)
+})
+
+.then(r=>r.json())
+.then(data=>{
+alert(data.message);
+resetForm();
+loadCustomers();
+loadSummary();
+
+});
+
+}
+
+
+
+//======== Load Customer Table========//
+
+function loadCustomers(){
+fetch(API_URL+"?action=customers")
+.then(r=>r.json())
+.then(data=>{
+showTable(data);
+});
+
+}
+
+
+
+//======= Search Customer=======//
+
+function searchData(){
+let text =
+document.getElementById("search").value;
+
+
+fetch(API_URL,{
+method:"POST",
+body:JSON.stringify({
+action:"search",
+text:text
+})
+
+})
+
+.then(r=>r.json())
+.then(data=>{
+showTable(data);
+});
+
+}
+
+
+//======= Show Table=======//
+
+function showTable(data){
+customerData=data;
+let html="";
+
+
+function formatDate(date){
+if(!date) return "";
+let d = new Date(date);
+if(isNaN(d)){
+    return date;
+}
+
+let day = String(d.getDate()).padStart(2,"0");
+let month = String(d.getMonth()+1).padStart(2,"0");
+let year = d.getFullYear();
+
+return day + "/" + month + "/" + year;
+
+}
+
+
+data.forEach(function(r,i){
+html += `
+<tr>
+<td>${i+1}</td>
+<td>${formatDate(r[0])}</td>
+<td>${r[1]}</td>
+<td>${r[2]}</td>
+<td>${r[3]}</td>
+<td>${r[4]}</td>
+<td>${r[5]}</td>
+<td>${r[6]}</td>
+<td>
+<button onclick="editCustomer(${i})">
+Edit
+</button>
+</td>
+</tr>
+
+`;
+
+});
+
+document.getElementById("tbody").innerHTML=html;
+}
+
+
+
+//======== Print Only Table========//
+
+function printData(){
+    let table = document.getElementById("table").cloneNode(true);
+
+    // Entry By ও Edit কলাম বাদ
+    table.querySelectorAll("tr").forEach(function(row){
+
+        if(row.children[7]){
+            row.children[7].remove();
+        }
+
+        if(row.children[7]){
+            row.children[7].remove();
+        }
+
+    });
+
+    let win = window.open("", "_blank");
+
+    if(!win){
+        alert("Popup Block হয়েছে। Browser Settings থেকে Popup Allow করুন।");
+        return;
+    }
+
+    win.document.open();
+    win.document.write(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Print</title>
+    <style>
+
+    body{
+        font-family:Arial,sans-serif;
+        padding:20px;
+        text-align:center;
+    }
+
+    h2{
+        margin-bottom:20px;
+    }
+    table{
+        width:100%;
+        border-collapse:collapse;
+    }
+    th,td{
+        border:1px solid #000;
+        padding:8px;
+        text-align:center;
+        font-size:14px;
+    }
+
+    th{
+        background:#ddd;
+    }
+
+    </style>
+    </head>
+    <body>
+    <h2>NGB Dish Customer Management</h2>
+    ${table.outerHTML}
+    </body>
+    </html>
+    `);
+    win.document.close();
+   
+    win.onload=function(){
+
+        setTimeout(function(){
+
+            win.focus();
+
+            win.print();
+
+        },500);
+
+    };
+
+}
+
+
+let editRow="";
+
+
+// Edit funttion
+function editCustomer(i){
+if(role!="Admin"){
+alert("Admin Only");
+return;
+
+}
+
+
+let r=customerData[i];
+editRow=i+2;
+
+
+
+// Date Convert dd/MM/yyyy -> yyyy-MM-dd
+let dt = new Date(r[0]);
+
+if (!isNaN(dt)) {
+    document.getElementById("eDate").value =
+        dt.getFullYear() + "-" +
+        String(dt.getMonth() + 1).padStart(2, "0") + "-" +
+        String(dt.getDate()).padStart(2, "0");
+}
+
+document.getElementById("eName").value=r[1];
+document.getElementById("eFather").value=r[2];
+document.getElementById("eAddress").value=r[3];
+document.getElementById("eMobile").value=r[4];
+
+
+loadEditNode(r[5]);
+document.getElementById("editBox").style.display="block";
+
+}
+
+
+function closeEdit(){
+document.getElementById("editBox").style.display="none";
+
+}
+
+
+function updateSave(){
+if(eNode.value==""){
+
+alert("Select Node First");
+return;
+
+}
+
+
+fetch(API_URL,{
+method:"POST",
+body:JSON.stringify({
+action:"updateCustomer",
+row:editRow,
+date:eDate.value,
+name:eName.value,
+father:eFather.value,
+address:eAddress.value,
+mobile:eMobile.value,
+node:eNode.value,
+user:user,
+role:role
+
+})
+
+})
+
+.then(r=>r.json())
+.then(data=>{
+alert(data.message);
+closeEdit();
+loadCustomers();
+});
+
+
+}
+
+function loadEditNode(selectNode){
+
+
+fetch(API_URL+"?action=nodes")
+.then(r=>r.json())
+.then(data=>{
+
+
+let h="";
+
+
+data.forEach(n=>{
+if(n==selectNode){
+h+=`<option selected>${n}</option>`;
+}
+
+else{
+
+h+=`<option>${n}</option>`;
+
+}
+
+});
+
+
+document.getElementById("eNode").innerHTML=h;
+
+});
+
+
+}
+
+
+function logout(){
+    if(!confirm("Logout করবেন?")){
+        return;
+    }
+
+    user = "";
+    role = "";
+    customerData = [];
+
+    document.getElementById("main").style.display = "none";
+    document.getElementById("loginBox").style.display = "block";
+    document.getElementById("username").value = "";
+    document.getElementById("password").value = "";
+}
+
+//==============================
+// Reset Form
+//==============================
+function resetForm(){
+
+document.getElementById("date").value = "";
+document.getElementById("name").value = "";
+document.getElementById("father").value = "";
+document.getElementById("address").value = "";
+document.getElementById("mobile").value = "";
+document.getElementById("node").selectedIndex = 0;
+document.getElementById("newNode").value = "";
+document.getElementById("search").value = "";
+document.getElementById("name").focus();
+
+}
+
+</script>
+
+</body>
+</html>
+
